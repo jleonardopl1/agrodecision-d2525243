@@ -78,14 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "AgroDecision" },
+      { name: "description", content: "A sua plataforma de decisões inteligentes no mercado Agro." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "AgroDecision" },
+      { property: "og:description", content: "A sua plataforma de decisões inteligentes no mercado Agro." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "AgroDecision" },
+      { name: "twitter:description", content: "A sua plataforma de decisões inteligentes no mercado Agro." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/82333cdf-fbf1-4800-b8df-b49b1a44a0e1/id-preview-3c0da59d--ca318a88-a934-4b95-a301-f39ba4d3db93.lovable.app-1781263766803.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/82333cdf-fbf1-4800-b8df-b49b1a44a0e1/id-preview-3c0da59d--ca318a88-a934-4b95-a301-f39ba4d3db93.lovable.app-1781263766803.png" },
     ],
     links: [
       {
