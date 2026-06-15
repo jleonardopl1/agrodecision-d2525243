@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { MessageCircle, Send, Smartphone } from "lucide-react";
+import { Send, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -11,6 +11,9 @@ import {
   useVinculos,
   type Canal,
 } from "@/hooks/use-chat";
+import { useCooperado } from "@/hooks/use-auth";
+import { useProducoes } from "@/hooks/use-carteira";
+import { useCustos } from "@/hooks/use-market";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,12 +99,45 @@ interface Bolha {
   conteudo: string;
 }
 
+/**
+ * Abertura proativa do consultor: ao abrir a conversa sem histórico, o bot já
+ * chega perguntando — na ordem que mais ajuda o produtor a vender melhor
+ * (cultura → custo → margem → ação) e personalizada pelo que ele já cadastrou.
+ */
+function montarAbertura(
+  nome: string | undefined,
+  temProducao: boolean,
+  temCusto: boolean,
+  temMargem: boolean,
+): string {
+  const ola = nome ? `Oi, ${nome}!` : "Oi!";
+  if (!temProducao) {
+    return `${ola} 🌱 Sou seu consultor comercial aqui do AgroDecision. Pra eu te ajudar a vender melhor, me conta: qual cultura você produz e quantas sacas espera colher nesta safra?`;
+  }
+  if (!temCusto) {
+    return `${ola} Já tenho sua produção anotada. Qual é o seu custo por saca? Com ele eu calculo sua margem e te aviso na hora certa de vender.`;
+  }
+  if (!temMargem) {
+    return `${ola} Produção e custo anotados 👍 Qual margem você quer fazer nesta safra? Aí eu te aviso assim que o preço pagar essa meta.`;
+  }
+  return `${ola} Seu cenário está montado. Quer que eu calcule "se vender hoje, quanto recebe?", veja quanto você já fixou, ou configure um alerta de preço?`;
+}
+
 export default function Chat() {
   const { data: mensagens } = useConversa();
+  const { data: cooperado } = useCooperado();
+  const { data: producoes } = useProducoes();
+  const { data: custos } = useCustos();
   const enviar = useEnviarMensagem();
   const [texto, setTexto] = useState("");
   const [pendente, setPendente] = useState<string | null>(null);
   const fimRef = useRef<HTMLDivElement>(null);
+
+  const primeiroNome = cooperado?.nome?.trim().split(/\s+/)[0];
+  const temProducao = (producoes ?? []).some((p) => p.producao_sacas != null);
+  const temCusto = (custos ?? []).length > 0;
+  const temMargem = (producoes ?? []).some((p) => p.margem_alvo_pct != null);
+  const abertura = montarAbertura(primeiroNome, temProducao, temCusto, temMargem);
 
   const bolhas: Bolha[] = [
     ...(mensagens ?? []).map((m) => ({ role: m.role as "user" | "assistant", conteudo: m.conteudo })),
@@ -140,13 +176,13 @@ export default function Chat() {
       <Card className="flex h-[60vh] flex-col">
         <CardContent className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
           {bolhas.length === 0 && !enviar.isPending ? (
-            <div className="m-auto max-w-sm space-y-4 text-center">
-              <MessageCircle className="mx-auto h-10 w-10 text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Me conte sua cultura, quanto espera colher e seu custo por saca — eu monto seu cenário e te
-                ajudo a vender no melhor momento.
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
+            <div className="space-y-3">
+              <div className="flex justify-start">
+                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+                  {abertura}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {SUGESTOES.map((s) => (
                   <button
                     key={s}
