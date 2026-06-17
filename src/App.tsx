@@ -11,6 +11,7 @@ import Alertas from "@/pages/Alertas";
 import Carteira from "@/pages/Carteira";
 import Chat from "@/pages/Chat";
 import CoopPortal from "@/pages/CoopPortal";
+import Cooperativas from "@/pages/Cooperativas";
 import Dashboard from "@/pages/Dashboard";
 import DesignSystem from "@/pages/DesignSystem";
 import Equipe from "@/pages/admin/Equipe";
@@ -38,6 +39,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/cooperativas" element={<Cooperativas />} />
             <Route path="/c/:slug" element={<CoopPortal />} />
             <Route path="/entrar" element={<Login />} />
             <Route path="/cadastro" element={<Signup />} />

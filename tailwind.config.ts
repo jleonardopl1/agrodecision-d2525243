@@ -1,7 +1,8 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
 
-// Design tokens — espelham src/lib/design-tokens.ts (paleta verde-campo)
+// Design tokens — espelham o agrodecision-design-system (Sora display + Inter UI,
+// paleta verde-campo + rampa de marca). src/index.css define as CSS vars.
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -53,8 +54,16 @@ export default {
         campo: {
           DEFAULT: "hsl(var(--campo))",
           claro: "hsl(var(--campo-claro))",
+          escuro: "var(--ad-verde-escuro)",
+          medio: "var(--ad-verde-medio)",
+          vivo: "var(--ad-verde-vivo)",
         },
+        lima: "var(--ad-lima)",
         colheita: "hsl(var(--colheita))",
+        "surface-dark": {
+          DEFAULT: "var(--surface-dark)",
+          foreground: "var(--surface-dark-foreground)",
+        },
         sinal: {
           vender: "hsl(var(--sinal-vender))",
           aguardar: "hsl(var(--sinal-aguardar))",
@@ -63,6 +72,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Sora", "Inter", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,18 +1,24 @@
 /**
  * Design tokens AgroDecision — fonte da verdade da identidade visual.
- * Espelhados em src/index.css (CSS vars) e tailwind.config.ts.
+ * Espelhados em src/index.css (CSS vars) e tailwind.config.ts, alinhados ao
+ * pacote agrodecision-design-system (Sora display + Inter UI).
  * As cores primária/accent podem ser sobrescritas em runtime pelo branding
  * co-branded da cooperativa (CoopThemeProvider).
  */
 export const designTokens = {
   cores: {
-    verdeCampo: "#1A5C38", // primária — confiança, campo
-    verdeClaro: "#E8F5EC", // fundos suaves
+    verdeEscuro: "#0F2B1D",     // superfícies escuras expressivas / hero
+    verdeCampo: "#1A5C38",      // primária — confiança, campo
+    verdeMedio: "#2E7D32",      // verde médio — accents, charts, wordmark
+    verdeVivo: "#7BC043",       // verde vivo — a seta, crescimento
+    lima: "#C9F24A",            // lima — energia de marca
+    verdeClaro: "#E8F5EC",      // fundos suaves
     laranjaColheita: "#F59E0B", // accent — colheita, AGUARDAR
-    atencao: "#DC2626", // sinal ATENÇÃO
+    atencao: "#DC2626",         // sinal ATENÇÃO
   },
   radiusPx: 12,
-  fontFamily: "Inter",
+  fontFamily: "Inter",   // UI / corpo
+  fontDisplay: "Sora",   // display / marca / headlines
 } as const;
 
 /** Converte #RRGGBB em "h s% l%" (formato das CSS vars shadcn). */

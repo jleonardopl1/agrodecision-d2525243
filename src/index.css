@@ -3,14 +3,9 @@
 @tailwind utilities;
 
 /*
- * Design system AgroDecision — paleta verde-campo.
- * Fonte da verdade: src/lib/design-tokens.ts
- *   verde-campo  #1A5C38 → hsl(147 56% 23%)
- *   verde-claro  #E8F5EC → hsl(146 39% 94%)
- *   laranja-colheita #F59E0B → hsl(38 92% 50%)
- *   atenção      #DC2626 → hsl(0 72% 51%)
- * As variáveis --primary/--accent são sobrescritas em runtime pelo branding
- * co-branded da cooperativa (CoopThemeProvider).
+ * Design system AgroDecision — fonte da verdade: o pacote agrodecision-design-system.
+ * Sora = display/marca; Inter = UI/corpo. Cores: paleta de marca (--ad-*) + tokens
+ * semânticos (shadcn). Sinais são semânticos — nunca recolorir.
  */
 @layer base {
   :root {
@@ -42,9 +37,10 @@
     --input: 146 20% 87%;
     --ring: 147 56% 23%;
 
-    /* raio 12px — design-tokens.ts */
+    /* raio 12px */
     --radius: 0.75rem;
 
+    /* Identidade AgroDecision (sobrescrevíveis em runtime p/ co-branding) */
     --campo: 147 56% 23%;
     --campo-claro: 146 39% 94%;
     --colheita: 38 92% 50%;
@@ -52,6 +48,21 @@
     --sinal-vender: 147 56% 23%;
     --sinal-aguardar: 38 92% 50%;
     --sinal-atencao: 0 72% 51%;
+    --sinal-vender-foreground: 0 0% 100%;
+    --sinal-aguardar-foreground: 32 72% 14%;
+    --sinal-atencao-foreground: 0 0% 100%;
+
+    /* Paleta de marca (rampa de verdes + colheita) — superfícies expressivas/logo */
+    --ad-verde-escuro: #0F2B1D;
+    --ad-verde-campo: #1A5C38;
+    --ad-verde-medio: #2E7D32;
+    --ad-verde-vivo: #7BC043;
+    --ad-lima: #C9F24A;
+    --ad-colheita: #F59E0B;
+
+    /* Superfície escura expressiva (faixas hero/pitch) — sólida, sem gradiente */
+    --surface-dark: #0F2B1D;
+    --surface-dark-foreground: #FFFFFF;
   }
 }
 
