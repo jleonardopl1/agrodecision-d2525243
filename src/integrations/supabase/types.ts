@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_groups: {
+        Row: {
+          chave: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       alertas: {
         Row: {
           ativo: boolean
@@ -87,6 +111,79 @@ export type Database = {
           variacao_pct?: number | null
         }
         Relationships: []
+      }
+      chat_mensagens: {
+        Row: {
+          canal: string
+          conteudo: string
+          cooperado_id: string
+          criado_em: string
+          id: string
+          role: string
+        }
+        Insert: {
+          canal: string
+          conteudo: string
+          cooperado_id: string
+          criado_em?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          canal?: string
+          conteudo?: string
+          cooperado_id?: string
+          criado_em?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mensagens_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_vinculos: {
+        Row: {
+          canal: string
+          chat_id: string | null
+          codigo: string
+          cooperado_id: string
+          created_at: string
+          id: string
+          verificado: boolean
+        }
+        Insert: {
+          canal: string
+          chat_id?: string | null
+          codigo: string
+          cooperado_id: string
+          created_at?: string
+          id?: string
+          verificado?: boolean
+        }
+        Update: {
+          canal?: string
+          chat_id?: string | null
+          codigo?: string
+          cooperado_id?: string
+          created_at?: string
+          id?: string
+          verificado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_vinculos_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commodities_config: {
         Row: {
@@ -292,6 +389,123 @@ export type Database = {
           },
         ]
       }
+      fixacoes: {
+        Row: {
+          canal: string
+          commodity: Database["public"]["Enums"]["commodity"]
+          cooperado_id: string
+          created_at: string
+          fixado_em: string
+          id: string
+          observacao: string | null
+          preco: number
+          sacas: number
+          safra: string
+        }
+        Insert: {
+          canal?: string
+          commodity: Database["public"]["Enums"]["commodity"]
+          cooperado_id: string
+          created_at?: string
+          fixado_em?: string
+          id?: string
+          observacao?: string | null
+          preco: number
+          sacas: number
+          safra: string
+        }
+        Update: {
+          canal?: string
+          commodity?: Database["public"]["Enums"]["commodity"]
+          cooperado_id?: string
+          created_at?: string
+          fixado_em?: string
+          id?: string
+          observacao?: string | null
+          preco?: number
+          sacas?: number
+          safra?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixacoes_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_permissions: {
+        Row: {
+          group_id: string
+          permission: Database["public"]["Enums"]["app_permission"]
+        }
+        Insert: {
+          group_id: string
+          permission: Database["public"]["Enums"]["app_permission"]
+        }
+        Update: {
+          group_id?: string
+          permission?: Database["public"]["Enums"]["app_permission"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      producoes: {
+        Row: {
+          area_ha: number | null
+          commodity: Database["public"]["Enums"]["commodity"]
+          cooperado_id: string
+          created_at: string
+          id: string
+          margem_alvo_pct: number | null
+          preco_alvo: number | null
+          producao_sacas: number | null
+          safra: string
+          updated_at: string
+        }
+        Insert: {
+          area_ha?: number | null
+          commodity: Database["public"]["Enums"]["commodity"]
+          cooperado_id: string
+          created_at?: string
+          id?: string
+          margem_alvo_pct?: number | null
+          preco_alvo?: number | null
+          producao_sacas?: number | null
+          safra: string
+          updated_at?: string
+        }
+        Update: {
+          area_ha?: number | null
+          commodity?: Database["public"]["Enums"]["commodity"]
+          cooperado_id?: string
+          created_at?: string
+          id?: string
+          margem_alvo_pct?: number | null
+          preco_alvo?: number | null
+          producao_sacas?: number | null
+          safra?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producoes_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relatorios: {
         Row: {
           aberto: boolean
@@ -420,172 +634,62 @@ export type Database = {
         }
         Relationships: []
       }
-      producoes: {
+      staff_group_members: {
         Row: {
-          area_ha: number | null
-          commodity: Database["public"]["Enums"]["commodity"]
-          cooperado_id: string
-          created_at: string
-          id: string
-          margem_alvo_pct: number | null
-          preco_alvo: number | null
-          producao_sacas: number | null
-          safra: string
-          updated_at: string
+          group_id: string
+          staff_id: string
         }
         Insert: {
-          area_ha?: number | null
-          commodity: Database["public"]["Enums"]["commodity"]
-          cooperado_id: string
-          created_at?: string
-          id?: string
-          margem_alvo_pct?: number | null
-          preco_alvo?: number | null
-          producao_sacas?: number | null
-          safra: string
-          updated_at?: string
+          group_id: string
+          staff_id: string
         }
         Update: {
-          area_ha?: number | null
-          commodity?: Database["public"]["Enums"]["commodity"]
-          cooperado_id?: string
-          created_at?: string
-          id?: string
-          margem_alvo_pct?: number | null
-          preco_alvo?: number | null
-          producao_sacas?: number | null
-          safra?: string
-          updated_at?: string
+          group_id?: string
+          staff_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "producoes_cooperado_id_fkey"
-            columns: ["cooperado_id"]
+            foreignKeyName: "staff_group_members_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "cooperados"
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_group_members_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
             referencedColumns: ["id"]
           },
         ]
       }
-      fixacoes: {
+      staff_members: {
         Row: {
-          canal: string
-          commodity: Database["public"]["Enums"]["commodity"]
-          cooperado_id: string
+          ativo: boolean
           created_at: string
-          fixado_em: string
+          email: string
           id: string
-          observacao: string | null
-          preco: number
-          sacas: number
-          safra: string
+          is_master: boolean
+          nome: string
         }
         Insert: {
-          canal?: string
-          commodity: Database["public"]["Enums"]["commodity"]
-          cooperado_id: string
+          ativo?: boolean
           created_at?: string
-          fixado_em?: string
-          id?: string
-          observacao?: string | null
-          preco: number
-          sacas: number
-          safra: string
-        }
-        Update: {
-          canal?: string
-          commodity?: Database["public"]["Enums"]["commodity"]
-          cooperado_id?: string
-          created_at?: string
-          fixado_em?: string
-          id?: string
-          observacao?: string | null
-          preco?: number
-          sacas?: number
-          safra?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fixacoes_cooperado_id_fkey"
-            columns: ["cooperado_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_vinculos: {
-        Row: {
-          canal: string
-          chat_id: string | null
-          codigo: string
-          cooperado_id: string
-          created_at: string
+          email: string
           id: string
-          verificado: boolean
-        }
-        Insert: {
-          canal: string
-          chat_id?: string | null
-          codigo: string
-          cooperado_id: string
-          created_at?: string
-          id?: string
-          verificado?: boolean
+          is_master?: boolean
+          nome: string
         }
         Update: {
-          canal?: string
-          chat_id?: string | null
-          codigo?: string
-          cooperado_id?: string
+          ativo?: boolean
           created_at?: string
+          email?: string
           id?: string
-          verificado?: boolean
+          is_master?: boolean
+          nome?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_vinculos_cooperado_id_fkey"
-            columns: ["cooperado_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_mensagens: {
-        Row: {
-          canal: string
-          conteudo: string
-          cooperado_id: string
-          criado_em: string
-          id: string
-          role: string
-        }
-        Insert: {
-          canal: string
-          conteudo: string
-          cooperado_id: string
-          criado_em?: string
-          id?: string
-          role: string
-        }
-        Update: {
-          canal?: string
-          conteudo?: string
-          cooperado_id?: string
-          criado_em?: string
-          id?: string
-          role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_mensagens_cooperado_id_fkey"
-            columns: ["cooperado_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -604,8 +708,24 @@ export type Database = {
         }[]
       }
       is_coop_admin: { Args: never; Returns: boolean }
+      is_master: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
+      staff_has_permission: {
+        Args: { perm: Database["public"]["Enums"]["app_permission"] }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_permission:
+        | "analytics:read_all"
+        | "coops:read"
+        | "coops:manage"
+        | "cooperados:read"
+        | "legal:read"
+        | "legal:manage"
+        | "billing:read"
+        | "marketing:read"
+        | "staff:manage"
       commodity: "soja" | "milho" | "cafe" | "algodao" | "boi"
     }
     CompositeTypes: {
@@ -734,6 +854,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_permission: [
+        "analytics:read_all",
+        "coops:read",
+        "coops:manage",
+        "cooperados:read",
+        "legal:read",
+        "legal:manage",
+        "billing:read",
+        "marketing:read",
+        "staff:manage",
+      ],
       commodity: ["soja", "milho", "cafe", "algodao", "boi"],
     },
   },
