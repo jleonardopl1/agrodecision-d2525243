@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
 
@@ -85,7 +85,7 @@ function DashboardPreview() {
         <div className='grid grid-cols-2 gap-3'>
           {commodities.map((c) => (
             <div key={c.name} className='rounded-lg border border-border bg-card p-3'>
-              <div class‑Name='' className='flex items-start justify-between'>
+              <div className='flex items-start justify-between'>
                 <div>
                   <p className='text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>{c.name}</p>
                   <p className='text-base font-bold'>{c.price}</p>
@@ -104,7 +104,7 @@ function DashboardPreview() {
   );
 }
 
-function Eyebrow({ children, tone = 'campo' }: { children: React.ReactNode; tone?: 'campo' | 'colheita' }) {
+function Eyebrow({ children, tone = 'campo' }: { children: ReactNode; tone?: 'campo' | 'colheita' }) {
   return <p className={cn('text-xs font-bold uppercase tracking-widest', tone === 'campo' ? 'text-campo' : 'text-colheita')}>{children}</p>;
 }
 
@@ -288,7 +288,7 @@ export default function Landing() {
             <h2 className='mt-3 text-3xl font-extrabold tracking-tight md:text-4xl'>Comece com zero risco.</h2>
           </div>
           <div className='mt-12 grid gap-5 md:grid-cols-3'>
-            {[{ plan: 'Piloto', price: 'Grátis', period: '90 dias', features: ['Até 500 cooperados', 'Dashboard completo', 'Sinais de IA', 'Alertas push', 'Relatórios semanais', 'Co-branding completo'], highlight: true, cta: 'Solicitar Piloto' }, { plan: 'Starter', price: 'R$ 1.500', period: '/mês', features: ['Até 500 cooperados', 'Tudo do Piloto', 'Portal admin', 'Relatórios mensais', 'Suporte email'], highlight: false, cta: 'Após o piloto' }, { plan: 'Pro', price: 'R$ 3.500', period: '/mês', features: ['Até 2.000 cooperados', 'Tudo do Starter', 'API básica', 'Suporte prioritário', 'Revenue share 20%'], highlight: false, cta: 'Após o piloto' }].map((p) => (
+            {[{ plan: 'Piloto', price: 'Grátis', period: ' / 90 dias', features: ['Até 500 cooperados', 'Dashboard completo', 'Sinais de IA', 'Alertas push', 'Relatórios semanais', 'Co-branding completo'], highlight: true, cta: 'Solicitar Piloto' }, { plan: 'Starter', price: 'R$ 1.500', period: ' /mês', features: ['Até 500 cooperados', 'Tudo do Piloto', 'Portal admin', 'Relatórios mensais', 'Suporte email'], highlight: false, cta: 'Após o piloto' }, { plan: 'Pro', price: 'R$ 3.500', period: ' /mês', features: ['Até 2.000 cooperados', 'Tudo do Starter', 'API básica', 'Suporte prioritário', 'Revenue share 20%'], highlight: false, cta: 'Após o piloto' }].map((p) => (
               <Card key={p.plan} className={cn('relative', p.highlight && 'border-colheita/40 bg-campo text-white shadow-lg')}>
                 {p.highlight ? <Badge className='absolute -top-2.5 left-1/2 -translate-x-1/2 bg-colheita text-accent-foreground hover:bg-colheita'>Recomendado</Badge> : null}
                 <CardContent className='p-6'>
@@ -299,7 +299,7 @@ export default function Landing() {
                       <li key={f} className={cn('flex items-center gap-2 text-sm', p.highlight ? 'text-white/80' : 'text-muted-foreground')}><span className={p.highlight ? 'text-colheita' : 'text-campo'}>✓</span> {f}</li>
                     ))}
                   </ul>
-                  <Button asChild className={cn('mt-6 w-full', p.highlight ? 'bg-colheita text-accent-foreground hover:bg-colheita/90' : '')} variant={p.highlight ? 'default' : 'outline'}><a href='#agendar'>{p.cta}</a></Button>
+                  <Button asChild className={cn('mt-6 w-full', p.highlight && 'bg-colheita text-accent-foreground hover:bg-colheita/90')} variant={p.highlight ? 'default' : 'outline'}><a href='#agendar'>{p.cta}</a></Button>
                 </CardContent>
               </Card>
             ))}
