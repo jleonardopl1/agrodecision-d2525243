@@ -81,21 +81,37 @@ export function useCambio() {
   });
 }
 
-/** Histórico de preços (spot nacional) para o gráfico, em ordem cronológica. */
-export function useHistoricoPrecos(commodity: Commodity) {
+/** Períodos de visualização do histórico (janela de tempo). */
+export type PeriodoHistorico = "15min" | "dia" | "semana" | "mes" | "ano";
+
+const PERIODO_HORAS: Record<PeriodoHistorico, number> = {
+  "15min": 6,        // últimas 6h (intervalos de ~15min)
+  dia: 24,           // últimas 24h
+  semana: 24 * 7,    // 7 dias
+  mes: 24 * 30,      // 30 dias
+  ano: 24 * 365,     // 12 meses
+};
+
+/**
+ * Histórico de preços (spot nacional) para o gráfico, em ordem cronológica,
+ * dentro da janela do período escolhido. A agregação por bucket fica no gráfico.
+ */
+export function useHistoricoPrecos(commodity: Commodity, periodo: PeriodoHistorico = "mes") {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["historico", commodity],
+    queryKey: ["historico", commodity, periodo],
     enabled: !!user,
     queryFn: async () => {
+      const desde = new Date(Date.now() - PERIODO_HORAS[periodo] * 3_600_000).toISOString();
       const { data, error } = await supabase
         .from("cotacoes_cache")
         .select("preco, capturado_em, unidade")
         .eq("commodity", commodity)
         .eq("tipo", "spot")
         .is("regiao", null)
+        .gte("capturado_em", desde)
         .order("capturado_em", { ascending: false })
-        .limit(90);
+        .limit(1500);
       if (error) throw error;
       return (data ?? []).reverse();
     },

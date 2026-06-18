@@ -29,6 +29,15 @@ export const COMMODITY_UNIDADE: Record<Commodity, string> = {
   boi: "R$/@",
 };
 
+/** Praça/fonte de referência do preço spot exibido (indicador CEPEA/ESALQ). */
+export const COMMODITY_REFERENCIA: Record<Commodity, { fonte: string; praca: string }> = {
+  soja: { fonte: "CEPEA/ESALQ", praca: "Paranaguá/PR" },
+  milho: { fonte: "CEPEA/ESALQ", praca: "Campinas/SP" },
+  cafe: { fonte: "CEPEA/ESALQ", praca: "Arábica · média Brasil" },
+  algodao: { fonte: "CEPEA/ESALQ", praca: "Índice · média Brasil" },
+  boi: { fonte: "CEPEA/B3", praca: "São Paulo/SP" },
+};
+
 export type Sinal = "VENDER" | "AGUARDAR" | "ATENCAO";
 
 export const SINAL_LABEL: Record<Sinal, string> = {
