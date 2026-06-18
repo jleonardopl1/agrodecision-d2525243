@@ -4,7 +4,6 @@ import {
   Calculator,
   FileText,
   Home,
-  Leaf,
   LogOut,
   MessageCircle,
   Settings,
@@ -16,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth, useCooperado } from "@/hooks/use-auth";
 import { useStaff } from "@/hooks/use-staff";
+import { BrandMark } from "@/components/BrandMark";
 import { CoopThemeProvider } from "@/components/CoopThemeProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,11 +90,9 @@ export function AppLayout() {
                   className="h-8 w-8 shrink-0 rounded-md object-contain"
                 />
               ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <Leaf className="h-4 w-4" />
-                </span>
+                <BrandMark className="shrink-0" />
               )}
-              <span className="truncate font-bold text-foreground">
+              <span className="truncate font-display font-bold text-foreground">
                 {coop ? coop.nome : "AgroDecision"}
               </span>
               {coop ? (

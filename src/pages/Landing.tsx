@@ -1,9 +1,10 @@
 import { Link, Navigate } from 'react-router-dom';
-import { Bell, Calculator, Leaf, LineChart, Sparkles, Users } from 'lucide-react';
+import { Bell, Calculator, LineChart, Sparkles, Users } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { BrandMark } from '@/components/BrandMark';
 import { SinalCard } from '@/components/SinalCard';
 import type { Cotacao, CustoProducao, SinalIA } from '@/hooks/use-market';
 
@@ -27,7 +28,7 @@ export default function Landing() {
     <div className='min-h-screen bg-background text-foreground'>
       <header className='mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6'>
         <div className='flex items-center gap-2'>
-          <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-campo text-white'><Leaf className='h-4 w-4' /></span>
+          <BrandMark />
           <span className='font-display text-lg font-bold tracking-tight'>
             <span className='text-campo'>Agro</span><span className='text-campo-medio'>Decision</span>
           </span>

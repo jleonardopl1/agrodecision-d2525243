@@ -40,6 +40,9 @@
     /* raio 12px */
     --radius: 0.75rem;
 
+    /* Famílias — Sora display, Inter UI */
+    --font-display: 'Sora', 'Inter', system-ui, sans-serif;
+
     /* Identidade AgroDecision (sobrescrevíveis em runtime p/ co-branding) */
     --campo: 147 56% 23%;
     --campo-claro: 146 39% 94%;
@@ -73,5 +76,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Headlines em Sora (display); UI/corpo seguem em Inter. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
   }
 }
