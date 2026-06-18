@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Calculator, DollarSign } from "lucide-react";
 
 import { COMMODITIES, isCommodity, type Commodity } from "@/lib/commodities";
-import { formatCambio, formatPct } from "@/lib/format";
+import { formatCambio, formatPct, tempoRelativo } from "@/lib/format";
 import { useCooperado } from "@/hooks/use-auth";
 import {
   useCambio,
@@ -123,38 +123,50 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        {["USD/BRL", "EUR/BRL"].map((par) => {
-          const c = cambio?.get(par);
-          return (
-            <Card key={par}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{par}</span>
-                </div>
-                {c ? (
-                  <div className="text-right">
-                    <p className="font-bold tabular-nums">{formatCambio(Number(c.cotacao))}</p>
-                    {c.variacao_pct !== null && (
-                      <p
-                        className={
-                          Number(c.variacao_pct) >= 0
-                            ? "text-xs text-sinal-vender"
-                            : "text-xs text-sinal-atencao"
-                        }
-                      >
-                        {formatPct(Number(c.variacao_pct))}
-                      </p>
+      {/* Câmbio — dólar e euro comercial (à vista), com hora da última atualização */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <p className="text-sm font-semibold">Câmbio</p>
+          <span className="text-xs text-muted-foreground">· dólar e euro comercial (à vista)</span>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {["USD/BRL", "EUR/BRL"].map((par) => {
+            const c = cambio?.get(par);
+            return (
+              <Card key={par}>
+                <CardContent className="space-y-2 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{par}</span>
+                    </div>
+                    {c ? (
+                      <div className="text-right">
+                        <p className="font-bold tabular-nums">{formatCambio(Number(c.cotacao))}</p>
+                        {c.variacao_pct !== null && (
+                          <p
+                            className={
+                              Number(c.variacao_pct) >= 0
+                                ? "text-xs text-sinal-vender"
+                                : "text-xs text-sinal-atencao"
+                            }
+                          >
+                            {formatPct(Number(c.variacao_pct))}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground">—</span>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+                  <p className="text-[11px] text-muted-foreground">
+                    {c ? `Atualizado ${tempoRelativo(c.capturado_em)}` : "Sem dados ainda"}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       <PrecoChart commodities={ordenadas} />

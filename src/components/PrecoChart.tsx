@@ -89,8 +89,8 @@ function Metodologia() {
             <strong className="text-foreground">B3</strong> (preço de ajuste do pregão).
           </p>
           <p>
-            <strong className="text-foreground">Câmbio:</strong> USD/BRL e EUR/BRL do{" "}
-            <strong className="text-foreground">Banco Central</strong>.
+            <strong className="text-foreground">Câmbio:</strong> USD/BRL e EUR/BRL pela{" "}
+            <strong className="text-foreground">cotação comercial à vista</strong> (mercado).
           </p>
           <p>
             <strong className="text-foreground">Atualização:</strong> puxamos os dados a cada{" "}
