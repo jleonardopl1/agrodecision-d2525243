@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BrandMark } from '@/components/BrandMark';
 import { SinalCard } from '@/components/SinalCard';
 import type { Cotacao, CustoProducao, SinalIA } from '@/hooks/use-market';
 
@@ -64,7 +64,7 @@ export default function Cooperativas() {
       <header className='bg-campo-escuro text-white'>
         <div className='mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6'>
           <Link to='/' className='flex items-center gap-2'>
-            <span className='flex h-8 w-8 items-center justify-center rounded-lg bg-white/10'><Leaf className='h-4 w-4 text-lima' /></span>
+            <BrandMark onDark />
             <span className='font-display text-lg font-bold tracking-tight text-white'>AgroDecision</span>
           </Link>
           <div className='flex items-center gap-3'>
@@ -263,7 +263,7 @@ export default function Cooperativas() {
       </section>
 
       <footer className='bg-campo-escuro py-8 text-center text-white/50'>
-        <div className='flex items-center justify-center gap-2'><Leaf className='h-4 w-4 text-lima' /><span className='font-display font-semibold text-white/70'>AgroDecision</span></div>
+        <div className='flex items-center justify-center gap-2'><BrandMark onDark className='h-5' /><span className='font-display font-semibold text-white/70'>AgroDecision</span></div>
         <p className='mt-2 text-xs'>Yamazing Corp © 2026 · Dados: CEPEA / B3 / BCB · IA: Claude by Anthropic</p>
       </footer>
     </div>
