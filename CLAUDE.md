@@ -2,8 +2,8 @@
 ## Objetivo
 SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3 futuros, CEPEA físico, basis regional por UF), câmbio, carteira/fixações, simulação de venda e alertas de preço.
 ## Stack
-- Frontend: Vite SPA + TypeScript
-- Backend: Supabase (Postgres + Edge Functions em Deno)
+- Frontend: Vite SPA (React 18 + plugin SWC) + TypeScript · roteamento `react-router-dom` · dados `@tanstack/react-query` · UI Tailwind + shadcn/ui (Radix) · gráficos `recharts` · toasts `sonner`
+- Backend: Supabase (Postgres + RLS) · Edge Functions em Deno
 - Gerenciador: npm
 - Integração Lovable ativa — NÃO remover .lovable/ nem .env
 ## Convenções (inegociáveis)
@@ -12,6 +12,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - Sempre preservar .lovable/ e .env.
 - Produto e bot em PT-BR natural.
 - O bot entrega análise e simulação informativas — nunca recomendação de compra/venda. Quem decide é o produtor.
+- Ao concluir cada sessão com mudanças relevantes: ATUALIZAR este CLAUDE.md (foco/fase, decisões, schema recente, arquivos tocados; resumir o debugging) antes de encerrar — sempre via branch + PR.
 ## Comandos
 - dev: `npm run dev` (Vite dev server)
 - build: `npm run build` (produção) · `npm run build:dev` (modo development)
@@ -20,8 +21,23 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - tipos do Supabase: `npm run db:types` (gera src/integrations/supabase/types.ts)
 - deploy de função: `supabase functions deploy <nome>` — ex.: `supabase functions deploy cotacao-worker` (via Supabase CLI; não há script npm)
 - migrations: aplicar no remoto `supabase db push` · criar `supabase migration new <nome>` · reset local `supabase db reset` (via Supabase CLI; não há script npm)
+## Schema (resumo — migrations 0001–0008)
+- Tenancy (0001): `cooperativas`, `cooperados`; helpers `current_cooperativa_id()`, `is_coop_admin()`, `touch_updated_at()`.
+- Mercado (0002): enum `commodity` (soja/milho/cafe/algodao/boi); `commodities_config`, `cotacoes_cache`, `sinais_ia`, `cambio_cache`.
+- Dados do usuário (0003): `custos_producao`, `alertas`, `relatorios`.
+- Billing (0004): `revenue_share_events`.
+- Signup/branding (0005): `handle_new_user()`, `get_coop_branding()`.
+- RLS hardening (0006): triggers `protect_*_cols` (cooperado/cooperativa/relatorio).
+- Carteira & chat (0007): `producoes`, `fixacoes`, `chat_vinculos`, `chat_mensagens`.
+- RBAC staff (0008): enum `app_permission`; `staff_members`, `access_groups`, `group_permissions`, `staff_group_members`; `is_staff()`, `is_master()`, `staff_has_permission()`.
+- RLS por cooperativa/dono em todas as tabelas de dados.
+## Edge functions (supabase/functions)
+- Workers cron (verify_jwt=false): `cotacao-worker` (cotações B3/CEPEA + câmbio via brapi.dev, basis por UF, fallback random-walk), `sinal-ia-worker`, `alerta-worker`, `relatorio-worker`.
+- Canal do bot: `chatbot`, `telegram-webhook`, `whatsapp-webhook`.
 ## Foco atual
-Chatbot WhatsApp + Telegram (plano em fases). Em andamento: Fase 0 — corrigir a edge function de cotações, que tem duas versões sobrepostas e não compila.
+Chatbot WhatsApp + Telegram (plano em fases).
+- Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
+- Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
 ## Fora de escopo
