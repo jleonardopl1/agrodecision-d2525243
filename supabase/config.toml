@@ -36,3 +36,17 @@ verify_jwt = false
 verify_jwt = false
 [functions.relatorio-worker]
 verify_jwt = false
+
+# Chatbot e webhooks (Fase 1) — verify_jwt = false porque a autenticação é feita
+# DENTRO da função, não pela plataforma:
+#  - chatbot: aceita tanto o JWT do cooperado (valida com auth.getUser) quanto a
+#    chamada interna dos webhooks com header x-worker-secret (sem JWT).
+#  - telegram-webhook: protegido pelo secret token do Telegram (header).
+#  - whatsapp-webhook: verificação GET por hub.verify_token e POST por assinatura
+#    HMAC X-Hub-Signature-256 (Meta) — nenhum deles envia JWT do Supabase.
+[functions.chatbot]
+verify_jwt = false
+[functions.telegram-webhook]
+verify_jwt = false
+[functions.whatsapp-webhook]
+verify_jwt = false

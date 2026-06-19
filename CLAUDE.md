@@ -37,9 +37,19 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 ## Foco atual
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
-- Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
+- Fase 1 — chatbot WhatsApp + Telegram: scaffolding completo (UI `Chat.tsx` + `use-chat.ts`,
+  edge `chatbot` com tool use Claude, webhooks `telegram-webhook`/`whatsapp-webhook`, entrega
+  de alertas por canal no `alerta-worker`). Endurecimento desta sessão:
+  - `config.toml`: declara `verify_jwt = false` para `chatbot`/`telegram-webhook`/`whatsapp-webhook`
+    (sem isso a plataforma devolvia 401 — webhooks e a chamada interna por `x-worker-secret` não levam JWT).
+  - `whatsapp-webhook`: passa a validar a assinatura HMAC `X-Hub-Signature-256` (Meta) quando
+    `WHATSAPP_APP_SECRET` está setado — fecha a brecha de impersonação via `from` forjado.
+  - `chatbot`/`criar_alerta`: inclui o canal da conversa (telegram/whatsapp) em `canais`, para o
+    alerta chegar onde o produtor falou (antes só `push`, ainda não entregue).
 ## Decisões pendentes
-- Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
+- ~~Canal WhatsApp (Twilio vs Meta Cloud API)~~ → **Meta Cloud API** (Graph v21, `whatsapp-webhook`).
+- ~~Motor de IA (modelo/custo)~~ → **Claude `claude-sonnet-4-6`** com tool use; fallback determinístico sem `ANTHROPIC_API_KEY`.
+- Em aberto: push no app (OneSignal) para alertas (`alerta-worker` tem TODO); ordem das próximas fases.
 ## Fora de escopo
 - Reescrever a integração Lovable; reescrever histórico; trocar de stack.
 ## Instruções de compactação

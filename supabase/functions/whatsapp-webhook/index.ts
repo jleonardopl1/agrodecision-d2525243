@@ -7,7 +7,7 @@
  *        `chatbot` e responde via Graph API.
  *
  * Deploy: verify_jwt = false. Secrets: WHATSAPP_VERIFY_TOKEN, WHATSAPP_TOKEN,
- *   WHATSAPP_PHONE_NUMBER_ID, WORKER_SECRET.
+ *   WHATSAPP_PHONE_NUMBER_ID, WORKER_SECRET, WHATSAPP_APP_SECRET (assinatura POST).
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -17,6 +17,7 @@ const VERIFY_TOKEN = Deno.env.get("WHATSAPP_VERIFY_TOKEN") ?? "";
 const WA_TOKEN = Deno.env.get("WHATSAPP_TOKEN") ?? "";
 const PHONE_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ?? "";
 const WORKER_SECRET = Deno.env.get("WORKER_SECRET") ?? "";
+const APP_SECRET = Deno.env.get("WHATSAPP_APP_SECRET") ?? "";
 
 async function sendMessage(to: string, text: string) {
   if (!WA_TOKEN || !PHONE_ID) return;
@@ -25,6 +26,30 @@ async function sendMessage(to: string, text: string) {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${WA_TOKEN}` },
     body: JSON.stringify({ messaging_product: "whatsapp", to, type: "text", text: { body: text } }),
   });
+}
+
+/**
+ * Valida a assinatura HMAC-SHA256 que a Meta envia em X-Hub-Signature-256
+ * ("sha256=<hex>"), calculada sobre o corpo cru com o App Secret. Sem essa
+ * checagem qualquer um poderia forjar um POST com o telefone de outra pessoa em
+ * `from` e agir na conta dela. Comparação em tempo constante.
+ */
+async function assinaturaValida(raw: string, header: string | null, secret: string): Promise<boolean> {
+  if (!header) return false;
+  const esperado = header.startsWith("sha256=") ? header.slice(7) : header;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const assinado = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw));
+  const hex = [...new Uint8Array(assinado)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  if (hex.length !== esperado.length) return false;
+  let diff = 0;
+  for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ esperado.charCodeAt(i);
+  return diff === 0;
 }
 
 Deno.serve(async (req) => {
@@ -43,13 +68,22 @@ Deno.serve(async (req) => {
 
   if (req.method !== "POST") return new Response("ok");
 
+  // Lê o corpo cru ANTES de parsear: a assinatura é sobre os bytes recebidos.
+  const raw = await req.text();
+  if (APP_SECRET && !(await assinaturaValida(raw, req.headers.get("X-Hub-Signature-256"), APP_SECRET))) {
+    return new Response("invalid signature", { status: 401 });
+  }
+  if (!APP_SECRET) {
+    console.warn("[whatsapp-webhook] WHATSAPP_APP_SECRET ausente — POST sem verificação de assinatura.");
+  }
+
   let payload: {
     entry?: Array<{
       changes?: Array<{ value?: { messages?: Array<{ from?: string; text?: { body?: string } }> } }>;
     }>;
   };
   try {
-    payload = await req.json();
+    payload = JSON.parse(raw);
   } catch {
     return new Response("ok");
   }
