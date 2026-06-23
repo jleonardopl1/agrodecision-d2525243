@@ -43,7 +43,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
-- Paralelo (tier Enterprise): camada geoespacial — schema 0009 + pipeline NDVI em `geo/` (scaffolding; falta consumo no front com MapLibre e backfill histórico p/ anomalia).
+- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no projeto remoto via MCP (PostGIS 3.3.7, tabelas + funções de serving OK). Falta: seed das regiões (`regioes_geo`), 1ª run do worker NDVI, consumo no front com MapLibre e backfill histórico p/ anomalia.
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
 ## Fora de escopo
