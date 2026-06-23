@@ -1,6 +1,13 @@
 # AgroDecision — CLAUDE.md
 ## Objetivo
 SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3 futuros, CEPEA físico, basis regional por UF), câmbio, carteira/fixações, simulação de venda e alertas de preço.
+## Colaboração entre agentes (AGENTS-COLLAB)
+Este projeto adota a metodologia **AGENTS-COLLAB** para coordenar múltiplos agentes entre sessões.
+- **Ordem de leitura:** `AGENTS-COLLAB.md` (estado vivo: decisões ativas, armadilhas, handoff) → este `CLAUDE.md` (convenções permanentes) → `docs/` e specs → código.
+- **Elenco de 13 agentes** especializados em `.claude/agents/` (mapa de faixas em `.claude/agents/README.md`).
+- **Bootstrap:** o hook `SessionStart` (`.claude/settings.json`) injeta `docs/colaboracao/bootstrap.md` no contexto no início de cada sessão.
+- **Handoff:** ao encerrar, atualize o *Handoff mais recente* do `AGENTS-COLLAB.md` (template em `docs/colaboracao/handoff-template.md`). Decisão estável → promova para cá.
+- Metodologia detalhada: `docs/colaboracao/metodologia.md`.
 ## Stack
 - Frontend: Vite SPA (React 18 + plugin SWC) + TypeScript · roteamento `react-router-dom` · dados `@tanstack/react-query` · UI Tailwind + shadcn/ui (Radix) · gráficos `recharts` · toasts `sonner`
 - Backend: Supabase (Postgres + RLS) · Edge Functions em Deno
@@ -44,10 +51,13 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
+- Metodologia AGENTS-COLLAB + elenco de 13 agentes adotados (2026-06-23). Revisão do que já existe registrada em `AGENTS-COLLAB.md` (backlog P0–P2) e `docs/colaboracao/revisao-2026-06-23.md`. `typecheck`/`lint` passam limpos.
 - Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK), front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`, e **seed de `regioes_geo` FEITO** (554 microrregiões, 27 UFs, 0 geometrias inválidas) via espelho IBGE no GitHub (`fititnt/gis-dataset-brasil`), baixado pelo próprio banco com a extensão `http` (IBGE oficial está bloqueado por egress nesta infra — sandbox e banco). Falta: 1ª run do worker NDVI + backfill histórico p/ anomalia. Obs.: `choropleth_vegetacao` faz INNER JOIN com os índices, então o mapa segue em estado vazio até o NDVI popular `indices_vegetacao_regional`.
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
+- Achados de segurança/produto da revisão 2026-06-23 (aguardam dono): P0 — HMAC no `whatsapp-webhook` e tom do chatbot vs. "nunca recomendação"; P1 — hardening de RPC/RLS (migration 0010). Detalhes em `AGENTS-COLLAB.md` e `docs/colaboracao/revisao-2026-06-23.md`.
 ## Fora de escopo
 - Reescrever a integração Lovable; reescrever histórico; trocar de stack.
 ## Instruções de compactação
 - Ao compactar, preserve: convenções, decisões, schema recente, arquivos tocados e a fase atual. Resuma o debugging.
+- Preserve também a camada de colaboração: a ordem de leitura (AGENTS-COLLAB.md → CLAUDE.md) e o elenco de agentes em `.claude/agents/`.
