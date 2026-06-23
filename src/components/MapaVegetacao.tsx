@@ -31,17 +31,32 @@ const ESTILO_BASE: StyleSpecification = {
   layers: [{ id: "osm", type: "raster", source: "osm" }],
 };
 
+// Região sem índice (NDVI null) — cinza "sem dado".
+const COR_SEM_DADO = "#cbd5e1";
+
 // Anomalia de NDVI vs. mesma janela do ano anterior: vermelho = abaixo do
 // normal (alerta de oferta), verde = acima.
-const COR_ANOMALIA: ExpressionSpecification = [
-  "interpolate", ["linear"], ["coalesce", ["get", "ndvi_anomalia"], 0],
+const RAMPA_ANOMALIA: ExpressionSpecification = [
+  "interpolate", ["linear"], ["get", "ndvi_anomalia"],
   -0.2, "#d73027", -0.05, "#fdae61", 0, "#ffffbf", 0.05, "#a6d96a", 0.2, "#1a9850",
 ];
 
 // NDVI absoluto (saúde da vegetação): marrom (solo) -> verde escuro (vigor).
-const COR_NDVI: ExpressionSpecification = [
-  "interpolate", ["linear"], ["coalesce", ["get", "ndvi"], 0],
+const RAMPA_NDVI: ExpressionSpecification = [
+  "interpolate", ["linear"], ["get", "ndvi"],
   0.1, "#a6611a", 0.3, "#dfc27d", 0.5, "#c7eae5", 0.7, "#5ab4ac", 0.85, "#01665e",
+];
+
+// Sem dado (valor null) cai no cinza; caso contrário, aplica a rampa da métrica.
+const COR_ANOMALIA: ExpressionSpecification = [
+  "case",
+  ["==", ["coalesce", ["get", "ndvi_anomalia"], 999], 999], COR_SEM_DADO,
+  RAMPA_ANOMALIA,
+];
+const COR_NDVI: ExpressionSpecification = [
+  "case",
+  ["==", ["coalesce", ["get", "ndvi"], 999], 999], COR_SEM_DADO,
+  RAMPA_NDVI,
 ];
 
 const corPorMetrica = (m: MetricaVeg): ExpressionSpecification =>

@@ -21,7 +21,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - tipos do Supabase: `npm run db:types` (gera src/integrations/supabase/types.ts)
 - deploy de função: `supabase functions deploy <nome>` — ex.: `supabase functions deploy cotacao-worker` (via Supabase CLI; não há script npm)
 - migrations: aplicar no remoto `supabase db push` · criar `supabase migration new <nome>` · reset local `supabase db reset` (via Supabase CLI; não há script npm)
-## Schema (resumo — migrations 0001–0009)
+## Schema (resumo — migrations 0001–0010)
 - Tenancy (0001): `cooperativas`, `cooperados`; helpers `current_cooperativa_id()`, `is_coop_admin()`, `touch_updated_at()`.
 - Mercado (0002): enum `commodity` (soja/milho/cafe/algodao/boi); `commodities_config`, `cotacoes_cache`, `sinais_ia`, `cambio_cache`.
 - Dados do usuário (0003): `custos_producao`, `alertas`, `relatorios`.
@@ -31,6 +31,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - Carteira & chat (0007): `producoes`, `fixacoes`, `chat_vinculos`, `chat_mensagens`.
 - RBAC staff (0008): enum `app_permission`; `staff_members`, `access_groups`, `group_permissions`, `staff_group_members`; `is_staff()`, `is_master()`, `staff_has_permission()`.
 - Geoespacial (0009): PostGIS; `regioes_geo` (malha IBGE), `indices_vegetacao_regional` (NDVI/NDWI/NDMI + anomalia por região/janela — dado COMPARTILHADO); serving `choropleth_vegetacao()` (GeoJSON) e `mvt_vegetacao(z,x,y)` (vector tiles). Leitura p/ autenticado; escrita só pelo worker (conexão direta).
+- Choropleth LEFT JOIN (0010): `choropleth_vegetacao` passa a partir de `regioes_geo` com LEFT JOIN nos índices — serve a malha inteira (554) mesmo sem NDVI (regiões sem dado vêm null → front pinta cinza). `mvt_vegetacao` segue INNER (não usado no front).
 - RLS por cooperativa/dono em todas as tabelas de dados.
 ## Edge functions (supabase/functions)
 - Workers cron (verify_jwt=false): `cotacao-worker` (cotações B3/CEPEA + câmbio via brapi.dev, basis por UF, fallback random-walk), `sinal-ia-worker`, `alerta-worker`, `relatorio-worker`.
@@ -44,7 +45,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
-- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK), front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`, e **seed de `regioes_geo` FEITO** (554 microrregiões, 27 UFs, 0 geometrias inválidas) via espelho IBGE no GitHub (`fititnt/gis-dataset-brasil`), baixado pelo próprio banco com a extensão `http` (IBGE oficial está bloqueado por egress nesta infra — sandbox e banco). Falta: 1ª run do worker NDVI + backfill histórico p/ anomalia. Obs.: `choropleth_vegetacao` faz INNER JOIN com os índices, então o mapa segue em estado vazio até o NDVI popular `indices_vegetacao_regional`.
+- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK), front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`, e **seed de `regioes_geo` FEITO** (554 microrregiões, 27 UFs, 0 geometrias inválidas) via espelho IBGE no GitHub (`fititnt/gis-dataset-brasil`), baixado pelo próprio banco com a extensão `http` (IBGE oficial está bloqueado por egress nesta infra — sandbox e banco). Em curso: 1ª run do worker NDVI (secret `SUPABASE_DB_URL` configurado, run disparada via Actions; falta backfill histórico p/ anomalia). Obs.: `choropleth_vegetacao` agora faz LEFT JOIN (migration 0010) — serve as 554 microrregiões mesmo sem NDVI (regiões sem dado em cinza no front); colorem quando o worker popular `indices_vegetacao_regional`.
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
 ## Fora de escopo
