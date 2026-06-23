@@ -39,11 +39,12 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - Pipeline Python (fora da infra paga, roda no GitHub Actions): ingestão Sentinel-2 L2A via STAC público → máscara de nuvem (SCL) + composição por mediana → NDVI/NDWI/NDMI + zonal stats por região → upsert em `indices_vegetacao_regional`. Dado livre p/ uso comercial (Copernicus).
 - `geo/worker_ndvi.py` (ingestão), `geo/seed_regioes.py` (carga da malha IBGE), `geo/requirements.txt` (deps open-source), `geo/README.md` (ordem de execução + ressalvas).
 - Cron semanal: `.github/workflows/ingest-ndvi.yml` (seg 06:00 UTC + dispatch manual; secret `SUPABASE_DB_URL`). Primeiro pipeline em GitHub Actions do repo — os demais workers são Edge Functions Deno.
+- Front: rota `/app/mapa` (`src/pages/Mapa.tsx` + `src/components/MapaVegetacao.tsx` com MapLibre GL + hook `src/hooks/use-vegetacao.ts`) consome a RPC `choropleth_vegetacao`. `maplibre-gl` no package.json; página em lazy-load (chunk próprio). Rodar `npm run db:types` p/ tipar a RPC no Database gerado.
 ## Foco atual
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
-- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no projeto remoto via MCP (PostGIS 3.3.7, tabelas + funções de serving OK). Falta: seed das regiões (`regioes_geo`), 1ª run do worker NDVI, consumo no front com MapLibre e backfill histórico p/ anomalia.
+- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK) e front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`. Falta: seed das regiões (`regioes_geo`), 1ª run do worker NDVI e backfill histórico p/ anomalia (até lá o mapa mostra estado vazio).
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
 ## Fora de escopo
