@@ -2,14 +2,18 @@
  * whatsapp-webhook — porta de entrada do chatbot no WhatsApp (Meta Cloud API).
  *
  * GET  : verificação do webhook (hub.challenge) com WHATSAPP_VERIFY_TOKEN.
- * POST : mensagens recebidas. Resolve o vínculo cooperado↔telefone; trata a 1ª
+ * POST : mensagens recebidas. Valida X-Hub-Signature-256 (HMAC-SHA256 com
+ *        WHATSAPP_APP_SECRET) antes de qualquer processamento — fail-closed:
+ *        sem o secret configurado, todos os POSTs são rejeitados com 403.
+ *        Após validação, resolve o vínculo cooperado↔telefone; trata a 1ª
  *        mensagem como CÓDIGO de pareamento; encaminha o texto à function
  *        `chatbot` e responde via Graph API.
  *
  * Deploy: verify_jwt = false. Secrets: WHATSAPP_VERIFY_TOKEN, WHATSAPP_TOKEN,
- *   WHATSAPP_PHONE_NUMBER_ID, WORKER_SECRET.
+ *   WHATSAPP_PHONE_NUMBER_ID, WORKER_SECRET, WHATSAPP_APP_SECRET.
  */
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { assinaturaWhatsappValida } from "./signature.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -17,6 +21,7 @@ const VERIFY_TOKEN = Deno.env.get("WHATSAPP_VERIFY_TOKEN") ?? "";
 const WA_TOKEN = Deno.env.get("WHATSAPP_TOKEN") ?? "";
 const PHONE_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ?? "";
 const WORKER_SECRET = Deno.env.get("WORKER_SECRET") ?? "";
+const APP_SECRET = Deno.env.get("WHATSAPP_APP_SECRET") ?? "";
 
 async function sendMessage(to: string, text: string) {
   if (!WA_TOKEN || !PHONE_ID) return;
@@ -43,13 +48,24 @@ Deno.serve(async (req) => {
 
   if (req.method !== "POST") return new Response("ok");
 
+  // Lê o corpo bruto uma única vez; será reutilizado para validação e parse.
+  const raw = await req.text();
+
+  // Valida a assinatura HMAC-SHA256 antes de qualquer processamento (fail-closed).
+  const assinaturaOk = await assinaturaWhatsappValida(
+    APP_SECRET,
+    raw,
+    req.headers.get("X-Hub-Signature-256"),
+  );
+  if (!assinaturaOk) return new Response("forbidden", { status: 403 });
+
   let payload: {
     entry?: Array<{
       changes?: Array<{ value?: { messages?: Array<{ from?: string; text?: { body?: string } }> } }>;
     }>;
   };
   try {
-    payload = await req.json();
+    payload = JSON.parse(raw);
   } catch {
     return new Response("ok");
   }

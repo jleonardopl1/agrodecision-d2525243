@@ -81,12 +81,6 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
 ## Armadilhas conhecidas (traps)
 <!-- Coisas que mordem quem não sabe. Curtas e específicas. -->
 
-- ⚠️ **Chatbot pode soar prescritivo.** O `SYSTEM_BASE` do `chatbot` fala em "indicações de
-  mercado" e "sugira venda PARCIAL"; o `CLAUDE.md` é inegociável: **"nunca recomendação de
-  compra/venda. Quem decide é o produtor."** Tensão a resolver pelo dono — ver P0 no backlog.
-- 🔓 **`whatsapp-webhook` não valida HMAC** (`X-Hub-Signature-256`). O Telegram está OK (secret
-  token no header). Sem HMAC, forjar o campo `from` permite injetar produção/fixações na
-  carteira de um cooperado já vinculado. Fix pronto na revisão (P0).
 - 🗺️ **Mapa vazio é esperado, não bug.** `choropleth_vegetacao` faz **INNER JOIN** com
   `indices_vegetacao_regional`; enquanto o worker NDVI não popular a tabela, `/app/mapa` fica
   vazio mesmo com as 554 regiões já carregadas.
@@ -104,10 +98,8 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
 <!-- Fonte: revisão 2026-06-23 (advisors do Supabase + npm audit + leitura de código). -->
 <!-- Detalhes e SQL/código prontos: docs/colaboracao/revisao-2026-06-23.md -->
 
-- **P0 — segurança / produto (precisa do dono):**
-  1. Validar HMAC no `whatsapp-webhook`.
-  2. Resolver a tensão "chatbot prescritivo × nunca recomendação".
-- **P1 — hardening (vira migration 0010 + ajuste de painel):**
+- **P0 ✅ concluído (2026-06-23, PR aberto a partir de `claude/hopeful-pascal-f4hwej`):** HMAC fail-closed no `whatsapp-webhook` + tom informativo com guardrail no `chatbot`. Pendente apenas o passo operacional de configurar `WHATSAPP_APP_SECRET` antes do deploy (D3 — aprovação do dono).
+- **P1 — hardening (vira migration 0010 + ajuste de painel) — próximo prioritário:**
   3. `REVOKE EXECUTE` nas funções de trigger e helpers de RLS expostos via RPC.
   4. Ativar *Leaked Password Protection* no Auth (HaveIBeenPwned).
 - **P2 — performance de banco (não urgente):**
@@ -126,14 +118,24 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
 - **Banco:** migrations 0001–0009 aplicadas no remoto. `regioes_geo` com 554 microrregiões,
   27 UFs, 0 geometrias inválidas. `typecheck` e `lint` passam limpos.
 - **Geo:** seed feito; falta a 1ª run do worker NDVI + backfill histórico (anomalia).
-- **Chatbot:** scaffolding dos 3 canais pronto (app/telegram/whatsapp); usa Claude
-  `claude-sonnet-4-6` com tool use e fallback determinístico sem `ANTHROPIC_API_KEY`.
+- **Chatbot:** scaffolding dos 3 canais pronto; `whatsapp-webhook` com HMAC `X-Hub-Signature-256` fail-closed (ativo quando `WHATSAPP_APP_SECRET` configurado no Supabase); `chatbot` com `SYSTEM_BASE` estritamente informativo + bloco GUARDRAIL (nunca "venda agora"/"segure"). Deploy pendente (D3).
 - **Front:** rotas do app + `/app/mapa` (MapLibre) em lazy-load.
 
 ---
 
 ## Handoff mais recente
 <!-- Sempre o topo = o mais recente. Use o template em docs/colaboracao/handoff-template.md -->
+
+### 2026-06-23 · `coordenador` + `edge-functions` + `chatbot` + `code-reviewer` + `gerente-contexto`
+- **Objetivo da sessão:** executar o P0 de segurança/produto — HMAC no `whatsapp-webhook` e tom informativo no `chatbot`.
+- **O que mudou:**
+  - `supabase/functions/whatsapp-webhook/signature.ts` (novo): `assinaturaWhatsappValida()` — HMAC-SHA256 com `crypto.subtle.verify` em tempo constante; fail-closed sem secret (403); validação estrita de hex; try/catch fail-closed.
+  - `supabase/functions/whatsapp-webhook/index.ts`: integra a validação — lê corpo bruto uma vez, valida antes de qualquer parse/DB; GET de verificação intacto.
+  - `supabase/functions/whatsapp-webhook/signature_test.ts` (novo): 12 vetores de teste.
+  - `supabase/functions/chatbot/index.ts`: `SYSTEM_BASE` reescrito — bloco GUARDRAIL explícito (nunca "venda agora"/"segure"/"sugiro vender"; devolve a decisão ao produtor); `sinais_ia.recomendacao` tratado como leitura de mercado; fallback determinístico alinhado.
+- **O que foi testado:** cross-check dos 12 vetores HMAC no Node (todos passaram); `typecheck` ✅ · `lint` ✅ · `build` ✅. Revisão do `code-reviewer`: APROVADO COM RESSALVAS — sem bloqueantes; ressalvas de hardening aplicadas na mesma sessão.
+- **Bloqueios / pendências:** o secret `WHATSAPP_APP_SECRET` ainda não está configurado no Supabase remoto. Sem ele, o fail-closed bloqueia todas as mensagens recebidas (403). Configurar é passo do dono (D3) antes de `supabase functions deploy whatsapp-webhook`.
+- **Próximo passo sugerido:** (1) dono configura `WHATSAPP_APP_SECRET` no painel Supabase → deploy do `whatsapp-webhook`; (2) `supabase-db` prepara migration 0010 (P1: REVOKE EXECUTE nos helpers de trigger/RLS + Leaked Password Protection), a partir dos detalhes em `docs/colaboracao/revisao-2026-06-23.md`.
 
 ### 2026-06-23 · `coordenador` + `gerente-contexto` + `reviewer`
 - **Objetivo da sessão:** adotar a metodologia AGENTS-COLLAB e o elenco de 13 agentes; revisar
