@@ -1,0 +1,38 @@
+name: Ingestão NDVI regional
+
+# Roda fora da infra paga (minutos gratuitos do GitHub Actions).
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # toda segunda-feira, 06:00 UTC (03:00 BRT)
+  workflow_dispatch: {}    # permite disparo manual
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: geo   # pipeline geoespacial vive em geo/
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: geo/requirements.txt
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar worker de ingestão
+        env:
+          # Configure em: repositório > Settings > Secrets and variables > Actions
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          # Foque nos estados-alvo para economizar tempo/memória.
+          TARGET_UFS: "PR,SP,MS,MT,GO,RS,SC,MG"
+          CULTURA: "todas"
+          RES_M: "20"          # use "60" se algum runner estourar memória
+          JANELA_DIAS: "30"
+          MAX_CLOUD: "60"
+        run: python worker_ndvi.py

@@ -23,3 +23,8 @@ npm-debug.log*
 # supabase local
 supabase/.temp
 supabase/.branches
+
+# python (camada geoespacial em geo/)
+__pycache__/
+*.py[cod]
+.venv

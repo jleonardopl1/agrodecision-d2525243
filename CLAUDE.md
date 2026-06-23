@@ -21,7 +21,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - tipos do Supabase: `npm run db:types` (gera src/integrations/supabase/types.ts)
 - deploy de função: `supabase functions deploy <nome>` — ex.: `supabase functions deploy cotacao-worker` (via Supabase CLI; não há script npm)
 - migrations: aplicar no remoto `supabase db push` · criar `supabase migration new <nome>` · reset local `supabase db reset` (via Supabase CLI; não há script npm)
-## Schema (resumo — migrations 0001–0008)
+## Schema (resumo — migrations 0001–0009)
 - Tenancy (0001): `cooperativas`, `cooperados`; helpers `current_cooperativa_id()`, `is_coop_admin()`, `touch_updated_at()`.
 - Mercado (0002): enum `commodity` (soja/milho/cafe/algodao/boi); `commodities_config`, `cotacoes_cache`, `sinais_ia`, `cambio_cache`.
 - Dados do usuário (0003): `custos_producao`, `alertas`, `relatorios`.
@@ -30,14 +30,21 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - RLS hardening (0006): triggers `protect_*_cols` (cooperado/cooperativa/relatorio).
 - Carteira & chat (0007): `producoes`, `fixacoes`, `chat_vinculos`, `chat_mensagens`.
 - RBAC staff (0008): enum `app_permission`; `staff_members`, `access_groups`, `group_permissions`, `staff_group_members`; `is_staff()`, `is_master()`, `staff_has_permission()`.
+- Geoespacial (0009): PostGIS; `regioes_geo` (malha IBGE), `indices_vegetacao_regional` (NDVI/NDWI/NDMI + anomalia por região/janela — dado COMPARTILHADO); serving `choropleth_vegetacao()` (GeoJSON) e `mvt_vegetacao(z,x,y)` (vector tiles). Leitura p/ autenticado; escrita só pelo worker (conexão direta).
 - RLS por cooperativa/dono em todas as tabelas de dados.
 ## Edge functions (supabase/functions)
 - Workers cron (verify_jwt=false): `cotacao-worker` (cotações B3/CEPEA + câmbio via brapi.dev, basis por UF, fallback random-walk), `sinal-ia-worker`, `alerta-worker`, `relatorio-worker`.
 - Canal do bot: `chatbot`, `telegram-webhook`, `whatsapp-webhook`.
+## Camada geoespacial (geo/)
+- Pipeline Python (fora da infra paga, roda no GitHub Actions): ingestão Sentinel-2 L2A via STAC público → máscara de nuvem (SCL) + composição por mediana → NDVI/NDWI/NDMI + zonal stats por região → upsert em `indices_vegetacao_regional`. Dado livre p/ uso comercial (Copernicus).
+- `geo/worker_ndvi.py` (ingestão), `geo/seed_regioes.py` (carga da malha IBGE via download local), `geo/seed_regioes.sql` (seed alternativo 100% SQL: o próprio banco baixa a malha de espelho no GitHub via extensão `http` e o PostGIS parseia), `geo/requirements.txt` (deps open-source), `geo/README.md` (ordem de execução + ressalvas).
+- Cron semanal: `.github/workflows/ingest-ndvi.yml` (seg 06:00 UTC + dispatch manual; secret `SUPABASE_DB_URL`). Primeiro pipeline em GitHub Actions do repo — os demais workers são Edge Functions Deno.
+- Front: rota `/app/mapa` (`src/pages/Mapa.tsx` + `src/components/MapaVegetacao.tsx` com MapLibre GL + hook `src/hooks/use-vegetacao.ts`) consome a RPC `choropleth_vegetacao`. `maplibre-gl` no package.json; página em lazy-load (chunk próprio). `types.ts` já inclui tabelas/funções da 0009 (regeneradas via MCP).
 ## Foco atual
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
+- Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK), front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`, e **seed de `regioes_geo` FEITO** (554 microrregiões, 27 UFs, 0 geometrias inválidas) via espelho IBGE no GitHub (`fititnt/gis-dataset-brasil`), baixado pelo próprio banco com a extensão `http` (IBGE oficial está bloqueado por egress nesta infra — sandbox e banco). Falta: 1ª run do worker NDVI + backfill histórico p/ anomalia. Obs.: `choropleth_vegetacao` faz INNER JOIN com os índices, então o mapa segue em estado vazio até o NDVI popular `indices_vegetacao_regional`.
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
 ## Fora de escopo

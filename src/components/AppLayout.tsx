@@ -5,6 +5,7 @@ import {
   FileText,
   Home,
   LogOut,
+  Map as MapIcon,
   MessageCircle,
   Settings,
   ShieldCheck,
@@ -31,6 +32,7 @@ import {
 const NAV_ITEMS = [
   { to: "/app", label: "Hoje", icon: Home, end: true },
   { to: "/app/carteira", label: "Carteira", icon: Wallet },
+  { to: "/app/mapa", label: "Mapa", icon: MapIcon },
   { to: "/app/chat", label: "Conversa", icon: MessageCircle },
   { to: "/app/alertas", label: "Alertas", icon: Bell },
   { to: "/app/relatorios", label: "Relatórios", icon: FileText },

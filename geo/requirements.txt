@@ -1,0 +1,12 @@
+# AgroDecision · Worker de ingestão geoespacial
+# Tudo open-source; dado Sentinel-2 é livre p/ uso comercial (Copernicus).
+pystac-client>=0.8
+odc-stac>=0.3.10
+odc-geo>=0.4.7
+rioxarray>=0.15
+rasterio>=1.3
+xarray>=2024.1
+dask[array]>=2024.1
+numpy>=1.26
+shapely>=2.0
+psycopg[binary]>=3.1

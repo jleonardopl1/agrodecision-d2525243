@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -22,6 +23,9 @@ import NotFound from "@/pages/NotFound";
 import Perfil from "@/pages/Perfil";
 import Relatorios from "@/pages/Relatorios";
 import Signup from "@/pages/Signup";
+
+// Mapa carrega o maplibre-gl (pesado) — fica em chunk próprio, sob demanda.
+const Mapa = lazy(() => import("@/pages/Mapa"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +53,18 @@ export default function App() {
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<Dashboard />} />
                 <Route path="/app/carteira" element={<Carteira />} />
+                <Route
+                  path="/app/mapa"
+                  element={
+                    <Suspense
+                      fallback={
+                        <div className="p-6 text-sm text-muted-foreground">Carregando mapa…</div>
+                      }
+                    >
+                      <Mapa />
+                    </Suspense>
+                  }
+                />
                 <Route path="/app/chat" element={<Chat />} />
                 <Route path="/app/margem" element={<Margem />} />
                 <Route path="/app/alertas" element={<Alertas />} />
