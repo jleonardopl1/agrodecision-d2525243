@@ -32,16 +32,13 @@ export function useChoroplethVegetacao(cultura: CulturaVeg = "todas") {
   return useQuery({
     queryKey: ["choropleth-vegetacao", cultura],
     queryFn: async (): Promise<VegetacaoCollection> => {
-      // A RPC nasceu na migration 0009; rode `npm run db:types` para tipá-la no
-      // Database gerado. Até lá, usamos um escape tipado e contido.
-      const rpc = supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: VegetacaoCollection | null; error: { message: string } | null }>;
-
-      const { data, error } = await rpc("choropleth_vegetacao", { p_cultura: cultura });
+      // RPC criada na migration 0009 e tipada via `npm run db:types`. Ela
+      // retorna Json; convertemos para a coleção GeoJSON tipada da camada.
+      const { data, error } = await supabase.rpc("choropleth_vegetacao", {
+        p_cultura: cultura,
+      });
       if (error) throw new Error(error.message);
-      return data ?? VAZIO;
+      return (data as unknown as VegetacaoCollection) ?? VAZIO;
     },
   });
 }

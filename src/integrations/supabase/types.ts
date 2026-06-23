@@ -459,6 +459,62 @@ export type Database = {
           },
         ]
       }
+      indices_vegetacao_regional: {
+        Row: {
+          cobertura_nuvem: number | null
+          criado_em: string
+          cultura: string
+          data_fim: string
+          data_inicio: string
+          fonte: string
+          id: number
+          n_pixels: number | null
+          ndmi_medio: number | null
+          ndvi_anomalia: number | null
+          ndvi_medio: number | null
+          ndwi_medio: number | null
+          regiao_id: number
+        }
+        Insert: {
+          cobertura_nuvem?: number | null
+          criado_em?: string
+          cultura?: string
+          data_fim: string
+          data_inicio: string
+          fonte?: string
+          id?: never
+          n_pixels?: number | null
+          ndmi_medio?: number | null
+          ndvi_anomalia?: number | null
+          ndvi_medio?: number | null
+          ndwi_medio?: number | null
+          regiao_id: number
+        }
+        Update: {
+          cobertura_nuvem?: number | null
+          criado_em?: string
+          cultura?: string
+          data_fim?: string
+          data_inicio?: string
+          fonte?: string
+          id?: never
+          n_pixels?: number | null
+          ndmi_medio?: number | null
+          ndvi_anomalia?: number | null
+          ndvi_medio?: number | null
+          ndwi_medio?: number | null
+          regiao_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indices_vegetacao_regional_regiao_id_fkey"
+            columns: ["regiao_id"]
+            isOneToOne: false
+            referencedRelation: "regioes_geo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       producoes: {
         Row: {
           area_ha: number | null
@@ -505,6 +561,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      regioes_geo: {
+        Row: {
+          area_km2: number | null
+          codigo_ibge: string
+          criado_em: string
+          geom: unknown
+          id: number
+          nivel: string
+          nome: string
+          uf: string
+        }
+        Insert: {
+          area_km2?: number | null
+          codigo_ibge: string
+          criado_em?: string
+          geom: unknown
+          id?: never
+          nivel?: string
+          nome: string
+          uf: string
+        }
+        Update: {
+          area_km2?: number | null
+          codigo_ibge?: string
+          criado_em?: string
+          geom?: unknown
+          id?: never
+          nivel?: string
+          nome?: string
+          uf?: string
+        }
+        Relationships: []
       }
       relatorios: {
         Row: {
@@ -696,6 +785,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      choropleth_vegetacao: {
+        Args: { p_cultura?: string; p_tolerancia?: number }
+        Returns: Json
+      }
       current_cooperativa_id: { Args: never; Returns: string }
       get_coop_branding: {
         Args: { p_slug: string }
@@ -710,6 +803,10 @@ export type Database = {
       is_coop_admin: { Args: never; Returns: boolean }
       is_master: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      mvt_vegetacao: {
+        Args: { p_cultura?: string; x: number; y: number; z: number }
+        Returns: string
+      }
       staff_has_permission: {
         Args: { perm: Database["public"]["Enums"]["app_permission"] }
         Returns: boolean

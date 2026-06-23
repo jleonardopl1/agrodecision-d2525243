@@ -39,7 +39,7 @@ SaaS de inteligência comercial para o produtor rural brasileiro: cotações (B3
 - Pipeline Python (fora da infra paga, roda no GitHub Actions): ingestão Sentinel-2 L2A via STAC público → máscara de nuvem (SCL) + composição por mediana → NDVI/NDWI/NDMI + zonal stats por região → upsert em `indices_vegetacao_regional`. Dado livre p/ uso comercial (Copernicus).
 - `geo/worker_ndvi.py` (ingestão), `geo/seed_regioes.py` (carga da malha IBGE), `geo/requirements.txt` (deps open-source), `geo/README.md` (ordem de execução + ressalvas).
 - Cron semanal: `.github/workflows/ingest-ndvi.yml` (seg 06:00 UTC + dispatch manual; secret `SUPABASE_DB_URL`). Primeiro pipeline em GitHub Actions do repo — os demais workers são Edge Functions Deno.
-- Front: rota `/app/mapa` (`src/pages/Mapa.tsx` + `src/components/MapaVegetacao.tsx` com MapLibre GL + hook `src/hooks/use-vegetacao.ts`) consome a RPC `choropleth_vegetacao`. `maplibre-gl` no package.json; página em lazy-load (chunk próprio). Rodar `npm run db:types` p/ tipar a RPC no Database gerado.
+- Front: rota `/app/mapa` (`src/pages/Mapa.tsx` + `src/components/MapaVegetacao.tsx` com MapLibre GL + hook `src/hooks/use-vegetacao.ts`) consome a RPC `choropleth_vegetacao`. `maplibre-gl` no package.json; página em lazy-load (chunk próprio). `types.ts` já inclui tabelas/funções da 0009 (regeneradas via MCP).
 ## Foco atual
 Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
