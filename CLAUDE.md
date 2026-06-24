@@ -42,6 +42,8 @@ Este projeto adota a metodologia **AGENTS-COLLAB** para coordenar múltiplos age
 ## Edge functions (supabase/functions)
 - Workers cron (verify_jwt=false): `cotacao-worker` (cotações B3/CEPEA + câmbio via brapi.dev, basis por UF, fallback random-walk), `sinal-ia-worker`, `alerta-worker`, `relatorio-worker`.
 - Canal do bot: `chatbot`, `telegram-webhook`, `whatsapp-webhook`.
+  - `whatsapp-webhook`: valida `X-Hub-Signature-256` (HMAC-SHA256) via `signature.ts` — fail-closed (sem secret `WHATSAPP_APP_SECRET` → rejeita com 403). Configurar o secret no Supabase antes de fazer deploy.
+  - `chatbot`: `SYSTEM_BASE` estritamente informativo; bloco GUARDRAIL proíbe "venda agora"/"segure"/"sugiro vender" — a decisão é sempre do produtor.
 ## Camada geoespacial (geo/)
 - Pipeline Python (fora da infra paga, roda no GitHub Actions): ingestão Sentinel-2 L2A via STAC público → máscara de nuvem (SCL) + composição por mediana → NDVI/NDWI/NDMI + zonal stats por região → upsert em `indices_vegetacao_regional`. Dado livre p/ uso comercial (Copernicus).
 - `geo/worker_ndvi.py` (ingestão), `geo/seed_regioes.py` (carga da malha IBGE via download local), `geo/seed_regioes.sql` (seed alternativo 100% SQL: o próprio banco baixa a malha de espelho no GitHub via extensão `http` e o PostGIS parseia), `geo/requirements.txt` (deps open-source), `geo/README.md` (ordem de execução + ressalvas).
@@ -52,10 +54,11 @@ Chatbot WhatsApp + Telegram (plano em fases).
 - Fase 0 ✅ concluída — `cotacao-worker` em versão única e endurecida (PR #13).
 - Em andamento: Fase 1 — chatbot WhatsApp + Telegram (scaffolding em `chatbot`/`telegram-webhook`/`whatsapp-webhook`).
 - Metodologia AGENTS-COLLAB + elenco de 13 agentes adotados (2026-06-23). Revisão do que já existe registrada em `AGENTS-COLLAB.md` (backlog P0–P2) e `docs/colaboracao/revisao-2026-06-23.md`. `typecheck`/`lint` passam limpos.
+- **P0 ✅ executado (2026-06-23):** HMAC fail-closed no `whatsapp-webhook` (`signature.ts` + integração no `index.ts`; 12 vetores verificados) e tom informativo com bloco GUARDRAIL no `chatbot`. PR aberto a partir de `claude/hopeful-pascal-f4hwej`. Pendente: configurar secret `WHATSAPP_APP_SECRET` no Supabase remoto antes do deploy.
 - Paralelo (tier Enterprise): camada geoespacial — migration 0009 já APLICADA no remoto via MCP (PostGIS 3.3.7, tabelas + serving OK), front `/app/mapa` (MapLibre) consumindo `choropleth_vegetacao`, e **seed de `regioes_geo` FEITO** (554 microrregiões, 27 UFs, 0 geometrias inválidas) via espelho IBGE no GitHub (`fititnt/gis-dataset-brasil`), baixado pelo próprio banco com a extensão `http` (IBGE oficial está bloqueado por egress nesta infra — sandbox e banco). Falta: 1ª run do worker NDVI + backfill histórico p/ anomalia. Obs.: `choropleth_vegetacao` faz INNER JOIN com os índices, então o mapa segue em estado vazio até o NDVI popular `indices_vegetacao_regional`.
 ## Decisões pendentes
 - Canal WhatsApp (Twilio vs Meta Cloud API); motor de IA (modelo/custo); ordem das fases.
-- Achados de segurança/produto da revisão 2026-06-23 (aguardam dono): P0 — HMAC no `whatsapp-webhook` e tom do chatbot vs. "nunca recomendação"; P1 — hardening de RPC/RLS (migration 0010). Detalhes em `AGENTS-COLLAB.md` e `docs/colaboracao/revisao-2026-06-23.md`.
+- P0 resolvido (ver Foco atual). Próximo: P1 — hardening de RPC/RLS (migration 0010): REVOKE EXECUTE nos helpers de trigger/RLS expostos via RPC + Leaked Password Protection. Detalhes em `docs/colaboracao/revisao-2026-06-23.md`.
 ## Fora de escopo
 - Reescrever a integração Lovable; reescrever histórico; trocar de stack.
 ## Instruções de compactação

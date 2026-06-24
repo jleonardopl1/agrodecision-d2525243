@@ -174,25 +174,34 @@ function cenarioParaTexto(c: Cenario): string {
   return linhas.join("\n");
 }
 
-const SYSTEM_BASE = `Você é o consultor comercial do AgroDecision, um especialista em comercialização
+const SYSTEM_BASE = `Você é o assistente comercial do AgroDecision, especialista em comercialização
 de grãos e pecuária que conversa com o produtor rural brasileiro pelo celular.
 
-SEU OBJETIVO: ajudar o produtor a vender melhor. Construa, ao longo da conversa, um cenário comercial
-completo dele e entregue análises, alertas e indicações de mercado em nível profissional, em tempo real.
+SEU OBJETIVO: dar clareza para o produtor decidir a melhor hora de vender. Ao longo da conversa, monte
+o cenário comercial completo dele e entregue análises, panoramas de mercado, cenários e simulações em
+linguagem simples — em tempo real.
+
+GUARDRAIL — LEIA COM ATENÇÃO:
+Você é estritamente INFORMATIVO. Nunca dê ordem nem recomendação de comprar ou vender. Nunca diga
+"venda agora", "segure", "sugiro vender" nem nada equivalente. Quando o cenário favorecer uma venda
+(preço acima da média, dólar firme, etc.), apresente os números e o gatilho concreto para que o
+produtor avalie — e encerre com algo como "como você quer proceder?" ou "a decisão é sua". Quem
+decide é o produtor, sempre. Se aparecer um campo de "recomendação" nos dados de mercado (sinais de
+IA), trate-o como leitura de mercado para contextualizar o cenário — não o repasse como conselho.
+Só detalhe uma venda parcial se o próprio produtor perguntar ou pedir.
 
 COMO CONVERSAR:
 - Linguagem do campo, simples, calorosa e direta. Trate o produtor pelo nome. NADA de jargão financeiro
   ("hedge", "basis", "EBITDA"). Fale como um agrônomo de confiança falaria no WhatsApp.
 - Respostas curtas (cabem na tela do celular). Use no máximo 1 emoji quando fizer sentido.
-- Se faltam dados para uma boa recomendação, faça UMA pergunta de cada vez, na ordem que mais ajuda o
-  produtor a ganhar dinheiro: cultura → área → produção esperada → custo por saca → margem desejada →
-  quanto já fixou → que alertas quer receber.
+- Se faltam dados para montar o cenário, faça UMA pergunta de cada vez, na ordem que mais ajuda o
+  produtor a entender sua situação: cultura → área → produção esperada → custo por saca → margem
+  desejada → quanto já fixou → que alertas quer receber.
 - Quando o produtor informar um dado (custo, produção, uma fixação que fez, uma meta), REGISTRE com a
   ferramenta apropriada antes de responder, e confirme em uma frase.
 - Para "se eu vender hoje, quanto recebo?", "quanto já fixei?", "quanto falta vender?", use as ferramentas
-  e responda com números concretos (R$ e %).
-- Seja conservador e transparente: explique o porquê em 1 frase, cite o gatilho concreto (preço acima da
-  média, dólar firme, etc.). Na dúvida entre vender e aguardar, sugira venda PARCIAL.
+  e responda com números concretos (R$ e %). Seja transparente: explique o porquê em 1 frase e cite o
+  gatilho concreto (preço acima da média, dólar firme, etc.) para que o produtor possa avaliar.
 
 Use as ferramentas sempre que envolverem dados do produtor. Depois de usá-las, dê a resposta final em texto.`;
 
@@ -327,14 +336,19 @@ async function execTool(
     const usaCommodity = tipo !== "cambio";
     if (usaCommodity && !isCommodity(input.commodity)) return { result: { erro: "informe a cultura do alerta" } };
     const operador = input.operador === "<=" ? "<=" : ">=";
-    const canais = input.whatsapp ? ["push", "whatsapp"] : ["push"];
+    // Inclui o canal da própria conversa (Telegram/WhatsApp) além do push: senão o
+    // alerta-worker entregaria só 'push' e o produtor que fala por outro canal não recebe.
+    const canais = new Set<string>(["push"]);
+    if (canal === "whatsapp" || canal === "telegram") canais.add(canal);
+    if (input.whatsapp) canais.add("whatsapp");
+    const canaisArr = [...canais];
     const { error } = await supabase.from("alertas").insert({
       cooperado_id: cooperadoId, tipo,
       commodity: usaCommodity ? input.commodity : null,
       par_cambio: tipo === "cambio" ? (input.par_cambio ?? "USD/BRL") : null,
-      operador, valor_alvo: precisaValor ? valor : null, canais,
+      operador, valor_alvo: precisaValor ? valor : null, canais: canaisArr,
     });
-    return { result: error ? { erro: error.message } : { ok: true, tipo, operador, valor_alvo: precisaValor ? valor : null } };
+    return { result: error ? { erro: error.message } : { ok: true, tipo, operador, valor_alvo: precisaValor ? valor : null, canais: canaisArr } };
   }
 
   return { result: { erro: `ferramenta desconhecida: ${name}` } };
@@ -345,7 +359,7 @@ async function execTool(
 // ---------------------------------------------------------------------------
 function respostaFallback(c: Cenario): string {
   if (!c.custos.length && !c.carteira.length) {
-    return `Oi, ${c.nome}! Pra eu te ajudar a vender melhor, me conta: qual cultura você produz e quantas sacas você espera colher nesta safra?`;
+    return `Oi, ${c.nome}! Pra eu te ajudar a acompanhar o mercado, me conta: qual cultura você produz e quantas sacas você espera colher nesta safra?`;
   }
   const partes: string[] = [`Aqui está sua posição, ${c.nome}:`];
   for (const p of c.carteira) {
