@@ -36,3 +36,14 @@ verify_jwt = false
 verify_jwt = false
 [functions.relatorio-worker]
 verify_jwt = false
+
+# Canais do bot: chamados por Telegram/Meta (sem JWT do Supabase) e entre si
+# (header x-worker-secret). A autenticação é feita DENTRO de cada função — por
+# isso verify_jwt = false (senão a plataforma devolve 401 antes do código rodar).
+# O whatsapp-webhook valida a assinatura HMAC da Meta (ver signature.ts).
+[functions.chatbot]
+verify_jwt = false
+[functions.telegram-webhook]
+verify_jwt = false
+[functions.whatsapp-webhook]
+verify_jwt = false

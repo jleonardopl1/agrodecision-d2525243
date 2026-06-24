@@ -336,14 +336,19 @@ async function execTool(
     const usaCommodity = tipo !== "cambio";
     if (usaCommodity && !isCommodity(input.commodity)) return { result: { erro: "informe a cultura do alerta" } };
     const operador = input.operador === "<=" ? "<=" : ">=";
-    const canais = input.whatsapp ? ["push", "whatsapp"] : ["push"];
+    // Inclui o canal da própria conversa (Telegram/WhatsApp) além do push: senão o
+    // alerta-worker entregaria só 'push' e o produtor que fala por outro canal não recebe.
+    const canais = new Set<string>(["push"]);
+    if (canal === "whatsapp" || canal === "telegram") canais.add(canal);
+    if (input.whatsapp) canais.add("whatsapp");
+    const canaisArr = [...canais];
     const { error } = await supabase.from("alertas").insert({
       cooperado_id: cooperadoId, tipo,
       commodity: usaCommodity ? input.commodity : null,
       par_cambio: tipo === "cambio" ? (input.par_cambio ?? "USD/BRL") : null,
-      operador, valor_alvo: precisaValor ? valor : null, canais,
+      operador, valor_alvo: precisaValor ? valor : null, canais: canaisArr,
     });
-    return { result: error ? { erro: error.message } : { ok: true, tipo, operador, valor_alvo: precisaValor ? valor : null } };
+    return { result: error ? { erro: error.message } : { ok: true, tipo, operador, valor_alvo: precisaValor ? valor : null, canais: canaisArr } };
   }
 
   return { result: { erro: `ferramenta desconhecida: ${name}` } };
