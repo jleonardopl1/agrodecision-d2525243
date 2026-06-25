@@ -54,6 +54,7 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
 | `tester` | Estratégia e escrita/execução de testes (hoje inexistentes no repo). | Não corrige o bug — reporta e cobre. |
 | `reviewer` | Portão de qualidade: `lint`, `typecheck`, `build`, advisors do Supabase. Read-only. | Não edita; reporta. |
 | `code-reviewer` | Revisão de diff/PR: bugs de correção, reuso, simplificação, segurança da mudança. Read-only. | Não edita; reporta. |
+| `security-reviewer` | Auditoria de segurança: OWASP, segredos, RLS/authz, HMAC de webhook, injeção de prompt. Read-only. | Não edita; reporta. |
 | `documentation-writer` | README, docs PT-BR, mantém o `CLAUDE.md` preciso (junto do `gerente-contexto`). | Não muda comportamento de código. |
 
 ---
@@ -75,6 +76,11 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
   em `supabase/functions/{chatbot,telegram-webhook,whatsapp-webhook}`.
 - **D5** (pendente — decisão do dono) — **Canal WhatsApp: Twilio vs Meta Cloud API.** O código
   atual já usa **Meta Cloud API** (`whatsapp-webhook`). Confirmar ou trocar antes de evoluir.
+- **D6** (2026-06-25, dono + Claude Code) — **Padrão ECC adotado.** Governança no estilo do ECC
+  (github.com/affaan-m/ECC): camada `rules/` (comum + stack), `SECURITY.md`, `CONTRIBUTING.md`,
+  CI (`.github/workflows/ci.yml`), templates de PR/issue, princípios fundamentais e **defesa de
+  prompt** nos agentes, e novo agente `security-reviewer` (elenco → 14). Harness Vitest iniciado.
+  **Sem aplicar** os fixes P0/P1 (mantém D3) — só documentados.
 
 ---
 
@@ -96,7 +102,8 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
   deveriam ter `EXECUTE` para ninguém. Hardening proposto (P1).
 - 🐢 **RLS re-avalia `auth.uid()` por linha** (~17 políticas, lint `auth_rls_initplan`). Usar
   `(select auth.uid())` para o planejador avaliar uma vez. Perf (P2).
-- 🧪 **Sem testes automatizados** em todo o repo. Primeira missão do `tester`.
+- 🧪 **Cobertura de testes ainda mínima.** Harness Vitest criado (2026-06-25) cobrindo a lógica
+  pura de `src/lib/simulador.ts`; chatbot e RLS seguem descobertos — faixa do `tester`.
 
 ---
 
@@ -116,8 +123,9 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
   7. Indexar FKs sem cobertura (`revenue_share_events`, `staff_group_members`, ...).
   8. Mover `pg_net` para fora do schema `public`. Rever `unused_index` só após tráfego real.
 - **Qualidade / infra:**
-  9. Introduzir testes (`tester`): simulador, montar cenário do chatbot, RLS.
+  9. ⏳ Testes (`tester`): harness Vitest + `simulador.test.ts` **feitos** (2026-06-25); falta cenário do chatbot e RLS.
   10. Avaliar bump do `vite` (audit dev-only de `esbuild`; fix é breaking → `vite@8`).
+  11. CI (`.github/workflows/ci.yml`) **feita** (2026-06-25): typecheck/lint/build/test em todo PR.
 
 ---
 
@@ -134,6 +142,23 @@ Definições completas em `.claude/agents/`. Cada agente tem uma faixa (lane) cl
 
 ## Handoff mais recente
 <!-- Sempre o topo = o mais recente. Use o template em docs/colaboracao/handoff-template.md -->
+
+### 2026-06-25 · adoção do padrão ECC (`documentation-writer` + `gerente-contexto` + `tester`)
+- **Objetivo da sessão:** adotar o ECC (github.com/affaan-m/ECC) como modelo de padrão/fluxo/
+  regras/organização — deixar o SaaS seguro, estável, organizado, auditável e profissional.
+- **O que mudou:** criada a camada `rules/` (README + 5 comuns + 4 por stack); `SECURITY.md` e
+  `CONTRIBUTING.md`; CI `.github/workflows/ci.yml`; `commitlint.config.js`; templates de PR e de
+  issue (bug). `CLAUDE.md`, `AGENTS.md` e `README.md` adaptados ao padrão. Os 13 agentes ganharam
+  **defesa de prompt (baseline)** + ponteiro para `rules/`; novo agente `security-reviewer`
+  (elenco → 14). Harness **Vitest** com `src/lib/simulador.test.ts`. **Nenhuma mudança de código
+  de aplicação, webhook ou banco remoto.**
+- **O que foi testado:** `npm run test` ✅ (9 testes) · `npm run typecheck` ✅; `lint`/`build` na
+  verificação final (ver PR).
+- **Decisão de escopo:** `tools:` de `chatbot`/`arquiteto-dados` **não** foi restringido — eles
+  precisam de Edit/Write e do MCP Supabase (leitura); a disciplina de faixa segue no texto do agente.
+- **Bloqueios / pendências:** P0/P1 seguem **só documentados** (HMAC do WhatsApp, migration 0010) —
+  aguardam aprovação do dono (D3).
+- **Próximo passo sugerido:** dono decide P0; `tester` expande a cobertura (chatbot, RLS).
 
 ### 2026-06-23 · `coordenador` + `gerente-contexto` + `reviewer`
 - **Objetivo da sessão:** adotar a metodologia AGENTS-COLLAB e o elenco de 13 agentes; revisar

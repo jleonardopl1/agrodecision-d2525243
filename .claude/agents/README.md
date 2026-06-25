@@ -19,7 +19,8 @@ Cada um tem uma **faixa** clara para evitar sobreposição. O estado vivo do pro
 | `designer` | design system, tokens, tema, co-branding, a11y | ✅ visual |
 | `tester` | estratégia e escrita de testes (montar o harness) | ✅ testes |
 | `reviewer` | portão de qualidade (lint/typecheck/build/advisors) | ❌ reporta |
-| `code-reviewer` | revisão de um diff/PR (correção, segurança, reuso) | ❌ reporta |
+| `code-reviewer` | revisão de um diff/PR (correção, reuso, simplificação) | ❌ reporta |
+| `security-reviewer` | auditoria de segurança (OWASP, segredos, RLS, HMAC, injeção de prompt) | ❌ reporta |
 | `documentation-writer` | README/docs/CLAUDE.md voltados a humanos | ✍️ só docs |
 
 ## Como acionar
@@ -29,11 +30,13 @@ Cada um tem uma **faixa** clara para evitar sobreposição. O estado vivo do pro
 - **Automático:** o orquestrador lê o campo `description` de cada agente para delegar. Por isso
   cada `description` começa com "Use este agente quando ...".
 
-## Convenção de revisão (duas faixas, de propósito)
+## Convenção de revisão (três faixas, de propósito)
 
 - `reviewer` = **saúde do projeto** (passa lint/types/build? respeita convenções? o que dizem os
   advisors?).
-- `code-reviewer` = **qualidade do diff** (este conjunto de mudanças tem bug, risco de segurança,
-  duplicação?).
+- `code-reviewer` = **qualidade do diff** (este conjunto de mudanças tem bug, duplicação,
+  complexidade desnecessária?).
+- `security-reviewer` = **risco de segurança** (OWASP, segredos, RLS/authz, HMAC de webhook,
+  injeção de prompt) — acione em código sensível antes de mesclar.
 
 Detalhes de integração com o Claude Code: `docs/colaboracao/integracao-claude-code.md`.
