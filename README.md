@@ -4,6 +4,8 @@ Inteligência de mercado para o produtor rural: **preço, câmbio, custo e marge
 30 segundos o produtor sabe se deve **VENDER**, **AGUARDAR** ou prestar **ATENÇÃO** — com um sinal
 de IA explicado em linguagem do campo. Distribuído via cooperativas (multi-tenant, co-branded).
 
+[![CI](https://github.com/jleonardopl1/agrodecision-d2525243/actions/workflows/ci.yml/badge.svg)](https://github.com/jleonardopl1/agrodecision-d2525243/actions/workflows/ci.yml)
+
 ## Stack
 
 - **Frontend:** Vite + React 18 + TypeScript, Tailwind (shadcn/ui), TanStack Query, React Router, Recharts
@@ -40,6 +42,11 @@ supabase/
   migrations/              # 0001 tenancy+RLS · 0002 mercado · 0003 dados do usuário
                            # 0004 revenue share 20% · 0005 trigger de signup + branding RPC
   functions/               # cotacao-worker · sinal-ia-worker · alerta-worker · relatorio-worker
+geo/                       # pipeline Python Sentinel-2/PostGIS (NDVI) + GitHub Actions
+rules/                     # regras "sempre-seguir" (common/ + stack/)
+.claude/agents/            # elenco de 14 agentes (metodologia AGENTS-COLLAB)
+.github/                   # CI (workflows/ci.yml) + templates de PR/issue
+CLAUDE.md · AGENTS.md · AGENTS-COLLAB.md · SECURITY.md · CONTRIBUTING.md
 ```
 
 ## Multi-tenant & co-branding
@@ -71,5 +78,34 @@ npm run dev          # desenvolvimento
 npm run build        # build de produção
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
+npm run test         # Vitest (test:watch · test:coverage)
 npm run db:types     # regenera src/integrations/supabase/types.ts
 ```
+
+## Testes
+
+Harness em **Vitest**. A cobertura inicial mira a lógica pura de `src/lib/simulador.ts`
+(carteira e simulação de venda). Rode `npm run test`. O padrão e o que cobrir estão em
+`rules/common/testing.md`; expandir a cobertura é faixa do agente `tester`.
+
+## Segurança
+
+Práticas de segredo/RLS/webhook e **divulgação responsável** em [`SECURITY.md`](./SECURITY.md).
+Vulnerabilidade **não** vai em issue pública. Checklist pré-commit e defesa de prompt em
+`rules/common/security.md`.
+
+## Contribuindo
+
+Leia [`CONTRIBUTING.md`](./CONTRIBUTING.md): ordem de leitura, **Conventional Commits** e o
+checklist de PR (PT-BR · bot informativo · `.env`/`.lovable/` intactos · `types.ts` não editado
+à mão · testes verdes).
+
+## Colaboração entre agentes (AGENTS-COLLAB)
+
+O projeto usa a metodologia **AGENTS-COLLAB** com um elenco de **14 agentes** especializados —
+organização inspirada no padrão do **ECC** (github.com/affaan-m/ECC):
+
+- **Estado vivo** (decisões, armadilhas, handoff): [`AGENTS-COLLAB.md`](./AGENTS-COLLAB.md)
+- **Convenções permanentes**: [`CLAUDE.md`](./CLAUDE.md)
+- **Regras "sempre-seguir"**: [`rules/`](./rules) (comum + por stack)
+- **Catálogo e faixas dos agentes**: [`AGENTS.md`](./AGENTS.md) e `.claude/agents/`
